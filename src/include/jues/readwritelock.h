@@ -47,55 +47,46 @@ class mutex
 {
 public:
     inline mutex(){
-        this->m_read = 0;
-        this->m_write = 0;
     }
     inline virtual ~mutex() {}
 
 public:
     void readLock(){
-        std::mutex mtx;
-        while(0 < this->m_write)
+        std::unique_lock<std::mutex> lock(this->m_mtx);
+        while ( true == this->m_write_used )
         {
-            std::unique_lock<std::mutex> lock(mtx);
-            //
-            this->m_cv.wait(lock);
+           this->m_cv.wait(lock);
         }
-        this->m_read++;
+        this->m_read_count++;
     }
     void readUnlock(){
-        if ( 0 == this->m_read )
+        std::unique_lock<std::mutex> lock(this->m_mtx);
+        this->m_read_count--;
+        if ( 0 == this->m_read_count)
         {
-            return;
+           this->m_cv.notify_all();
         }
-        this->m_read--;
-        this->m_cv.notify_all();
     }
     void writeLock(){
-        std::mutex mtx;
-        while(0 < this->m_write ||
-              0 < this->m_read )
+        std::unique_lock<std::mutex> lock(this->m_mtx);
+        while ( 0 < this->m_read_count ||
+                true == this->m_write_used )
         {
-            std::unique_lock<std::mutex> lock(mtx);
-            //
-            this->m_cv.wait(lock);
+           this->m_cv.wait(lock);
         }
-        this->m_write++;
+        this->m_write_used = true;
     }
     void writeUnlock(){
-        if ( 0 == this->m_write )
-        {
-            return;
-        }
-        this->m_write--;
+        std::unique_lock<std::mutex> lock(this->m_mtx);
+        this->m_write_used = false;
         this->m_cv.notify_all();
     }
 
 
 protected:
-    std::atomic<size_t> m_read;
-    std::atomic<size_t> m_write;
-
+    size_t m_read_count = 0;
+    bool m_write_used = false;
+    std::mutex m_mtx;
     std::condition_variable m_cv;
 };
 
