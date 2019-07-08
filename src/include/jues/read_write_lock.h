@@ -1,11 +1,11 @@
 /*
  * Filename:
  * ---------
- * readwritelock.h
+ * read_write_lock.h
  *
  * Project:
  * --------
- * ReadWriteLock
+ * read write lock
  *
  * Description:
  * ------------
@@ -43,15 +43,15 @@ namespace jues
 
 
 // mutex
-class mutex
+class read_write_mutex
 {
 public:
-    inline mutex(){
+    inline read_write_mutex(){
     }
-    inline virtual ~mutex() {}
+    inline virtual ~read_write_mutex() {}
 
 public:
-    void readLock(){
+    void lock_read(){
         std::unique_lock<std::mutex> lock(this->m_mtx);
         while ( true == this->m_write_used )
         {
@@ -59,7 +59,7 @@ public:
         }
         this->m_read_count++;
     }
-    void readUnlock(){
+    void unlock_read(){
         std::unique_lock<std::mutex> lock(this->m_mtx);
         this->m_read_count--;
         if ( 0 == this->m_read_count)
@@ -67,7 +67,7 @@ public:
            this->m_cv.notify_all();
         }
     }
-    void writeLock(){
+    void lock_write(){
         std::unique_lock<std::mutex> lock(this->m_mtx);
         while ( 0 < this->m_read_count ||
                 true == this->m_write_used )
@@ -76,7 +76,7 @@ public:
         }
         this->m_write_used = true;
     }
-    void writeUnlock(){
+    void unlock_write(){
         std::unique_lock<std::mutex> lock(this->m_mtx);
         this->m_write_used = false;
         this->m_cv.notify_all();
@@ -94,19 +94,19 @@ protected:
 
 // read lock
 template<typename _Mutex>
-class ReadLock
+class lock_read
 {
 public:
     typedef _Mutex mutex_type;
 
-    explicit ReadLock(mutex_type& __m) : _M_device(__m)
-    { _M_device.readLock(); }
+    explicit lock_read(mutex_type& __m) : _M_device(__m)
+    { _M_device.lock_read(); }
 
-    virtual ~ReadLock()
-    { _M_device.readUnlock(); }
+    virtual ~lock_read()
+    { _M_device.unlock_read(); }
 
-    ReadLock(const ReadLock&) = delete;
-    ReadLock& operator=(const ReadLock&) = delete;
+    lock_read(const lock_read&) = delete;
+    lock_read& operator=(const lock_read&) = delete;
 
 private:
     mutex_type&  _M_device;
@@ -116,19 +116,19 @@ private:
 
 // write lock
 template<typename _Mutex>
-class WriteLock
+class lock_write
 {
 public:
     typedef _Mutex mutex_type;
 
-    explicit WriteLock(mutex_type& __m) : _M_device(__m)
-    { _M_device.writeLock(); }
+    explicit lock_write(mutex_type& __m) : _M_device(__m)
+    { _M_device.lock_write(); }
 
-    virtual ~WriteLock()
-    { _M_device.writeUnlock(); }
+    virtual ~lock_write()
+    { _M_device.unlock_write(); }
 
-    WriteLock(const WriteLock&) = delete;
-    WriteLock& operator=(const WriteLock&) = delete;
+    lock_write(const lock_write&) = delete;
+    lock_write& operator=(const lock_write&) = delete;
 
 private:
     mutex_type&  _M_device;
