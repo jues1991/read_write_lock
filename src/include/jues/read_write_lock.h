@@ -94,19 +94,19 @@ protected:
 
 // read lock
 template<typename _Mutex>
-class lock_read
+class lock_reader
 {
 public:
     typedef _Mutex mutex_type;
 
-    explicit lock_read(mutex_type& __m) : _M_device(__m)
+    explicit lock_reader(mutex_type& __m) : _M_device(__m)
     { _M_device.lock_read(); }
 
-    virtual ~lock_read()
+    virtual ~lock_reader()
     { _M_device.unlock_read(); }
 
-    lock_read(const lock_read&) = delete;
-    lock_read& operator=(const lock_read&) = delete;
+    lock_reader(const lock_reader&) = delete;
+    lock_reader& operator=(const lock_reader&) = delete;
 
 private:
     mutex_type&  _M_device;
@@ -116,19 +116,19 @@ private:
 
 // write lock
 template<typename _Mutex>
-class lock_write
+class lock_writer
 {
 public:
     typedef _Mutex mutex_type;
 
-    explicit lock_write(mutex_type& __m) : _M_device(__m)
+    explicit lock_writer(mutex_type& __m) : _M_device(__m)
     { _M_device.lock_write(); }
 
-    virtual ~lock_write()
+    virtual ~lock_writer()
     { _M_device.unlock_write(); }
 
-    lock_write(const lock_write&) = delete;
-    lock_write& operator=(const lock_write&) = delete;
+    lock_writer(const lock_writer&) = delete;
+    lock_writer& operator=(const lock_writer&) = delete;
 
 private:
     mutex_type&  _M_device;

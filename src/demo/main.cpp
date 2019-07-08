@@ -10,7 +10,7 @@ static jues::read_write_mutex m;
 
 static void test_read_lock( const int &d )
 {
-    jues::lock_read<jues::read_write_mutex> read(m);
+    jues::lock_reader<jues::read_write_mutex> read(m);
     //
     cout<<"pid="<<this_thread::get_id()<<", test_read_lock d="<<d<<"."<<endl;
     this_thread::sleep_for(chrono::milliseconds(1000));
@@ -18,7 +18,7 @@ static void test_read_lock( const int &d )
 
 static void test_write_lock( const int &d )
 {
-    jues::lock_write<jues::read_write_mutex> write(m);
+    jues::lock_writer<jues::read_write_mutex> write(m);
     //
     cout<<"pid="<<this_thread::get_id()<<", test_write_lock d="<<d<<"."<<endl;
     this_thread::sleep_for(chrono::milliseconds(1000));
